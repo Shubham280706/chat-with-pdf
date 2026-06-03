@@ -1,20 +1,16 @@
 export async function getEmbedding(text: string): Promise<number[]> {
-  const response = await fetch(
-    'https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2',
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        inputs: text,
-        options: { wait_for_model: true }
-      })
+  // Simple deterministic embedding using character frequency
+  const vector = new Array(384).fill(0)
+  const words = text.toLowerCase().split(/\s+/)
+  
+  for (const word of words) {
+    for (let i = 0; i < word.length; i++) {
+      const idx = (word.charCodeAt(i) * 31 + i * 17) % 384
+      vector[idx] += 1
     }
-  )
-
-  const data = await response.json()
-  const embedding = Array.isArray(data[0]) ? data[0] : data
-  return embedding
+  }
+  
+  // Normalize
+  const magnitude = Math.sqrt(vector.reduce((sum, v) => sum + v * v, 0))
+  return magnitude > 0 ? vector.map(v => v / magnitude) : vector
 }
