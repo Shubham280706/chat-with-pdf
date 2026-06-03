@@ -1,7 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm install --ignore-scripts && npm run build"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "npm run build && npm start"
 restartPolicyType = "always"
